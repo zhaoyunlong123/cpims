@@ -1,0 +1,116 @@
+properties:
+    mysql: 127.0.0.1
+    redis: 127.0.0.1
+spring:
+    #数据源 - 关系型数据库
+    datasource:
+        #数据库连接四要素 -----------------------------------------------------------------------------------------------
+        driver-class-name: com.mysql.cj.jdbc.Driver
+        url: jdbc:mysql://${properties.mysql}:3306/javakc82?serverTimezone=Asia/Shanghai&useUnicode=true&characterEncoding=UTF-8&useSSL=false
+        username: root
+        password: 123456
+        #schema数据库初始化 ---------------------------------------------------------------------------------------------
+        #数据库 DDL （数据库定义语言） 初始化表结构 drop creale
+        schema: classpath:sql/schema.sql
+        #数据库 DML （数据操作语言） 初始化数据 insert into
+        data: classpath:sql/data.sql
+        #数据库初始化模式（由于初始化数据只在第一次运行的时候执行，所以执行一次always后改为never）
+        #never：从不执行--不是第一次启动时
+        #always: 一直执行--第一次启动时
+        initialization-mode: never
+#        initialization-mode: always
+        #当遇到导入异常时，终止运行
+        continue-on-error: false
+        #配置druid连接池（数据源） ---------------------------------------------------------------------------------------
+        type: com.alibaba.druid.pool.DruidDataSource
+        #druid 数据源专有配置
+        druid:
+            #初始化时建立物理连接的个数。初始化发生在显示调用init方法，或者第一次getConnection时
+            initialSize: 5
+            #最小连接池数量
+            minIdle: 5
+            #最大连接池数量
+            maxActive: 20
+            #获取连接时最大等待时间，单位毫秒。配置了maxWait之后，缺省启用公平锁，并发效率会有所下降，
+            #如果需要可以通过配置useUnfairLock属性为true使用非公平锁。
+            maxWait: 60000
+            #1) Destroy线程会检测连接的间隔时间
+            #2) testWhileIdle的判断依据，详细看testWhileIdle属性的说明
+            timeBetweenEvictionRunsMillis: 60000
+            #连接保持空闲而不被驱逐的最小时间
+            minEvictableIdleTimeMillis: 300000
+            #用来检测连接是否有效的sql，要求是一个查询语句，常用select 'x'。
+            #如果validationQuery为null，testOnBorrow、testOnReturn、testWhileIdle都不会起作用。
+            validationQuery: SELECT 1 FROM DUAL
+            #建议配置为true，不影响性能，并且保证安全性。申请连接的时候检测，如果空闲时间大于timeBetweenEvictionRunsMillis，执行validationQuery检测连接是否有效。
+            testWhileIdle: true
+            #申请连接时执行validationQuery检测连接是否有效，做了这个配置会降低性能。
+            testOnBorrow: false
+            #归还连接时执行validationQuery检测连接是否有效，做了这个配置会降低性能。
+            testOnReturn: false
+            #配置监控统计拦截的filters，stat:监控统计、wall：防御sql注入
+            filters: stat,wall,config
+            # 打开PSCache
+            poolPreparedStatements: true
+            #指定每个连接上PSCache的大小
+            maxPoolPreparedStatementPerConnectionSize: 20
+            #合并多个DruidDataSource的监控数据
+            useGlobalDataSourceStat: true
+            #通过connectProperties属性来打开mergeSql功能；慢SQL记录
+            connectionProperties: druid.stat.mergeSql=true;druid.stat.slowSqlMillis=5000
+    #数据源 - 非关系型数据库（NoSQL数据库）
+    redis:
+        #本地地址
+        host: ${properties.redis}
+        #端口号
+        port: 6379
+        #密码（没有可以不加，当需要用的时候再添加密码）
+        password:
+        #设置数据库的分库的数量
+        database: 0
+        #数据库连接
+        lettuce:
+            #数据库连接池
+            pool:
+                #默认连接池中的链接的数量
+                max-active: 8
+                #连接池中链接的最大数量
+                max-idle: 8
+                #连接池中链接的最小数量
+                min-idle: 0
+        #添加哨兵
+        sentinel:
+            #主机名称
+            master: mymaster
+            #哨兵节点，多个用id加端口号用逗号隔开
+            nodes: 127.0.0.1:16379,127.0.0.1:16380,127.0.0.1:16381
+    security:
+        jwt:
+            header: Authorization
+            #前缀
+            prefix: "Bearer "
+            secret: secret
+            #颁发给我们自己的计算机（以后写https加域名，保证安全）
+            issuer: "http://127.0.0.1/"
+            #过期时间
+            expiration: 3600
+            #七天，刷新令牌的时间
+            remember: 604800
+            claimsAuthorities: authorities
+mybatis:
+    #可选编程配置
+    configuration:
+        #日志输出(生产环境需关闭)
+        log-impl: org.apache.ibatis.logging.stdout.StdOutImpl
+        #开启驼峰功能 user_name -> userName
+        map-underscore-to-camel-case: true
+        #是否启用缓存
+        cache-enabled: true
+    #mybatis映射文件路径
+    mapper-locations: classpath:/mapper/*.xml
+    #扫描mybatis映射类提供别名
+    type-aliases-package: com.javakc.springbootcpims.modules.*.entity
+#防止端口号占用
+server:
+    #端口号
+    port: 8081

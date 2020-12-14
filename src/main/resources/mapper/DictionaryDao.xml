@@ -1,0 +1,64 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.javakc.springbootcpims.modules.dictionary.dao.DictionaryDao">
+
+    <!--
+        接管Mybatis默认的处理机制
+        默认的管理机制：查询数据库后把对象经过序列化后，写入到运行内存中
+            缺点：1、对象要求实现序列化接口
+                 2、内存中数据随服务器关闭而释放
+        type：指向一个我们自己定义的类
+    -->
+    <cache type="com.javakc.springbootcpims.common.datasource.mybatis.MybatisCache"/>
+
+    <!-- 封装全部字段 -->
+    <sql id="all">
+        id, system_name, group_name, real_value, show_value, sort_value, remarks, revision, created_by, created_time, updated_by, updated_time
+    </sql>
+
+    <!-- 数据字典-查询全部数据 加useCache="false"，强行不走缓存 -->
+    <select id="queryAll" resultType="dictionary" >
+        select <include refid="all"></include> from cpims_basic_data_dictionary
+    </select>
+
+    <!-- 数据字典-通过id查询单条数据 -->
+    <select id="queryById" resultType="dictionary">
+        select <include refid="all"></include> from cpims_basic_data_dictionary where id=#{id}
+    </select>
+
+    <!-- 数据字典-添加单条数据 -->
+    <insert id="insert">
+        insert into cpims_basic_data_dictionary (system_name, group_name, real_value, show_value, sort_value, remarks)
+                values (#{systemName},#{groupName},#{realValue},#{showValue},#{sortValue},#{remarks})
+    </insert>
+
+    <!-- 数据字典-批量添加数据 -->
+    <insert id="inserts">
+        insert into cpims_basic_data_dictionary (system_name, group_name, real_value, show_value, sort_value, remarks)
+            values
+            <foreach collection="list" item="entity" separator=",">
+                (#{entity.systemName},#{entity.groupName},#{entity.realValue},#{entity.showValue},#{entity.sortValue},#{entity.remarks})
+            </foreach>
+    </insert>
+
+    <!-- 数据字典-修改单条数据 -->
+    <update id="update">
+        update cpims_basic_data_dictionary set system_name = #{systemName}, group_name = #{groupName}, real_value = #{realValue},
+                show_value = #{showValue}, sort_value = #{sortValue}, remarks = #{remarks} where id=#{id}
+    </update>
+
+    <!-- 数据字典-根据id删除单条数据 -->
+    <delete id="delete">
+        delete from cpims_basic_data_dictionary where id = #{id}
+    </delete>
+
+    <!-- 数据字典-批量删除 -->
+    <delete id="deletes">
+        delete from cpims_basic_data_dictionary where id in
+                <foreach collection="list" item="id" separator="," open="(" close=")">
+                    #{id}
+                </foreach>
+    </delete>
+
+</mapper>
